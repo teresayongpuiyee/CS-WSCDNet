@@ -9,7 +9,7 @@ import importlib
 import os
 import os.path as osp
 
-import voc12.dataloader
+import dataloader
 from misc import torchutils, imutils
 import net.resnet50_cam
 import cv2
@@ -56,7 +56,7 @@ def _work(process_id, model, dataset, args):
             highres_cam /= F.adaptive_max_pool2d(highres_cam, (1, 1)) + 1e-5
             
             # save cams
-            np.save(os.path.join(args.cam_out_dir, img_name + '.npy'), {"keys": valid_cat, "cam": strided_cam.cpu(), "high_res": highres_cam.cpu().numpy()})
+            np.save(os.path.join(args.cam_out_dir, img_name.split(".")[0] + '.npy'), {"keys": valid_cat, "cam": strided_cam.cpu(), "high_res": highres_cam.cpu().numpy()})
 
             if process_id == n_gpus - 1 and iter % (len(databin) // 20) == 0:
                 print("%d " % ((5*iter+1)//(len(databin) // 20)), end='')
@@ -69,7 +69,7 @@ def run(args):
 
     n_gpus = torch.cuda.device_count()
 
-    dataset = voc12.dataloader.VOC12ClassificationDatasetMSF(args.train_list, CAM_root=args.CAM_root, scales=args.cam_scales)
+    dataset = dataloader.VOC12ClassificationDatasetMSF(args.train_list, CAM_root=args.CAM_root, scales=args.cam_scales)
     dataset = torchutils.split_dataset(dataset, n_gpus)
 
     print('[ ', end='')

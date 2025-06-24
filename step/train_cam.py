@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 import importlib
 
-import voc12.dataloader
+import dataloader
 from misc import pyutils, torchutils
 from torch import autograd
 import os
@@ -46,14 +46,14 @@ def run(args):
     model = getattr(importlib.import_module(args.cam_network), 'Net')()
 
 
-    train_dataset = voc12.dataloader.VOC12ClassificationDataset(args.train_list, CAM_root=args.CAM_root,
+    train_dataset = dataloader.VOC12ClassificationDataset(args.train_list, CAM_root=args.CAM_root,
                                                                 hor_flip=True,
                                                                 crop_size=224, crop_method="random")
     train_data_loader = DataLoader(train_dataset, batch_size=args.cam_batch_size,
                                    shuffle=True, num_workers=args.num_workers, pin_memory=True, drop_last=True)
     max_step = (len(train_dataset) // args.cam_batch_size) * args.cam_num_epoches
 
-    val_dataset = voc12.dataloader.VOC12ClassificationDataset(args.val_list, CAM_root=args.CAM_root,
+    val_dataset = dataloader.VOC12ClassificationDataset(args.val_list, CAM_root=args.CAM_root,
                                                               crop_size=224)
     val_data_loader = DataLoader(val_dataset, batch_size=args.cam_batch_size,
                                  shuffle=False, num_workers=args.num_workers, pin_memory=True, drop_last=True)

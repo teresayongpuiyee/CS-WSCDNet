@@ -6,7 +6,7 @@ import imageio
 from torch import multiprocessing
 from torch.utils.data import DataLoader
 
-import voc12.dataloader
+import dataloader
 from misc import torchutils, imutils
 from PIL import Image
 
@@ -22,10 +22,13 @@ def _work(process_id, infer_dataset, args):
     infer_data_loader = DataLoader(databin, shuffle=False, num_workers=0, pin_memory=False)
 
     for iter, pack in enumerate(infer_data_loader):
-        img_name = voc12.dataloader.decode_int_filename(pack['name'][0])
+        if not isinstance(pack['name'][0], str):
+            img_name = dataloader.decode_int_filename(pack['name'][0])
+        else:
+            img_name = pack['name'][0]
         imgA = pack['imgA'][0].numpy()
         imgB = pack['imgB'][0].numpy()
-        cam_dict = np.load(os.path.join(args.cam_out_dir, img_name + '.npy'), allow_pickle=True).item()
+        cam_dict = np.load(os.path.join(args.cam_out_dir, img_name.split(".")[0] + '.npy'), allow_pickle=True).item()
 
         cams = cam_dict['high_res']
         keys = np.pad(cam_dict['keys'] + 1, (1, 0), mode='constant')
@@ -51,14 +54,14 @@ def _work(process_id, infer_dataset, args):
         conf[bg_conf + fg_conf == 0] = 0
         
 
-        imageio.imwrite(os.path.join(args.ir_label_out_dir, img_name + '.png'), conf.astype(np.uint8))
+        imageio.imwrite(os.path.join(args.ir_label_out_dir, img_name.split(".")[0] + '.png'), conf.astype(np.uint8))
 
 
         if process_id == args.num_workers - 1 and iter % (len(databin) // 20) == 0:
             print("%d " % ((5 * iter + 1) // (len(databin) // 20)), end='')
 
 def run(args):
-    dataset = voc12.dataloader.VOC12ImageDataset(args.train_list, CAM_root=args.CAM_root, img_normal=None, to_torch=False)
+    dataset = dataloader.VOC12ImageDataset(args.train_list, CAM_root=args.CAM_root, img_normal=None, to_torch=False)
     dataset = torchutils.split_dataset(dataset, args.num_workers)
 
     print('[ ', end='')

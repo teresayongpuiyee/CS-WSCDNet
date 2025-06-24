@@ -13,7 +13,7 @@ import torch.nn.functional as F
 
 import importlib
 
-import voc12.dataloader
+import dataloader
 import net.resnet50_cam
 from misc import pyutils, torchutils, imutils
 from torch import autograd
@@ -57,14 +57,14 @@ def run(args):
     recam_predictor.train()
 
 
-    train_dataset = voc12.dataloader.VOC12ClassificationDataset(args.train_list, CAM_root=args.CAM_root,
+    train_dataset = dataloader.VOC12ClassificationDataset(args.train_list, CAM_root=args.CAM_root,
                                                                 resize_long=(320, 640), hor_flip=True,
                                                                 crop_size=224, crop_method="random")
     train_data_loader = DataLoader(train_dataset, batch_size=args.cam_batch_size,
                                    shuffle=True, num_workers=args.num_workers, pin_memory=True, drop_last=True)
     max_step = (len(train_dataset) // args.cam_batch_size) * args.recam_num_epoches
 
-    val_dataset = voc12.dataloader.VOC12ClassificationDataset(args.val_list, CAM_root=args.CAM_root,
+    val_dataset = dataloader.VOC12ClassificationDataset(args.val_list, CAM_root=args.CAM_root,
                                                               crop_size=224)
     val_data_loader = DataLoader(val_dataset, batch_size=args.cam_batch_size,
                                  shuffle=False, num_workers=args.num_workers, pin_memory=True, drop_last=True)

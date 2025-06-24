@@ -13,17 +13,17 @@ if __name__ == '__main__':
     # Environment
     # parser.add_argument("--num_workers", default=os.cpu_count()//2, type=int)
     parser.add_argument("--num_workers", default=12, type=int)
-    parser.add_argument("--CAM_root", default='dataset/BCD', type=str, 
+    parser.add_argument("--CAM_root", default='../data/bottle-CD-256', type=str, 
                         help="Dataset floder. Please enter the folder names for T1,T2 images in the IMG_FOLDER_NAME_A and IMG_FOLDER_NAME_B sections of the dataloader")
-    parser.add_argument("--SAM_A", default="./dataset/BCD/train/A1/", type=str)
-    parser.add_argument("--SAM_B", default="./dataset/BCD/train/B1/", type=str, 
+    parser.add_argument("--SAM_A", default="../data/bottle256/train/A/", type=str)
+    parser.add_argument("--SAM_B", default="../data/bottle256/train/B/", type=str, 
                         help = "Remove the unchanged pixel pairs in the predicted mask, and only use SAM for the changed pixel pairs")
     parser.add_argument("--SAM_weight", default="./pth/sam_vit_h_4b8939.pth", type=str, 
                         help = "sam_vit_h_4b8939.pth")
 
     # Dataset
-    parser.add_argument("--train_list", default="dataset/BCD/train.txt", type=str)
-    parser.add_argument("--val_list", default="dataset/BCD/val.txt", type=str)
+    parser.add_argument("--train_list", default="../data/bottle-CD-256/list/train.txt", type=str)
+    parser.add_argument("--val_list", default="../data/bottle-CD-256/list/val.txt", type=str)
 
     # Class Activation Map
     parser.add_argument("--cam_network", default="net.resnet50_cam", type=str)
@@ -67,6 +67,7 @@ if __name__ == '__main__':
     parser.add_argument("--SAM_label_pass", default=True)  
  
     args = parser.parse_args()
+    args.work_space = args.work_space + "/bottle_repo"
     args.log_name = osp.join(args.work_space,args.log_name)
     args.cam_weights_name = osp.join(args.work_space,args.cam_weights_name)
     args.cam_out_dir = osp.join(args.work_space,args.cam_out_dir)

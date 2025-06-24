@@ -8,10 +8,10 @@ from misc import imutils
 from PIL import Image
 import torch.nn.functional as F
 
-IMG_FOLDER_NAME_B = "B1"
-IMG_FOLDER_NAME_A = "A1"
+IMG_FOLDER_NAME_B = "B"
+IMG_FOLDER_NAME_A = "A"
 
-cls_labels_dict = np.load('dataset/BCD/npy.npy', allow_pickle=True).item()
+cls_labels_dict = np.load('../data/bottle-CD-256/imagelevel_labels.npy', allow_pickle=True).item()
 
 def decode_int_filename(int_filename):
     # s = str(int(int_filename))
@@ -24,24 +24,39 @@ def decode_int_filename(int_filename):
 
 def load_image_label_list_from_npy(img_name_list):
 
+    for key in cls_labels_dict:
+
+        current_label = cls_labels_dict[key]  # E.g., array([0, 1])
+
+        ## Swap the first and second elements
+        #swapped_label = np.array([current_label[1], current_label[0]], dtype=current_label.dtype)
+        
+        # Expand to 10 classes (if necessary), by adding zeros for extra classes
+        new_label = np.zeros(10, dtype=np.uint8)
+        #new_label[:current_label.shape[0]] = current_label  # Copy original labels into the first positions
+        new_label[-current_label.shape[0]:] = current_label  # Copy original labels into the last positions
+        
+        # Update the dictionary with the new label
+        cls_labels_dict[key] = new_label
+
     return np.array([cls_labels_dict[img_name] for img_name in img_name_list])
 
 def get_img_pathB(img_name, CAM_root):
     if not isinstance(img_name, str):
         img_name = decode_int_filename(img_name)
-    return os.path.join(CAM_root, IMG_FOLDER_NAME_B, img_name + '.png')
+    return os.path.join(CAM_root, IMG_FOLDER_NAME_B, img_name)
 
 def get_img_pathA(img_name, CAM_root):
     if not isinstance(img_name, str):
         img_name = decode_int_filename(img_name)
-    return os.path.join(CAM_root, IMG_FOLDER_NAME_A, img_name + '.png')
+    return os.path.join(CAM_root, IMG_FOLDER_NAME_A, img_name)
 
 def load_img_name_list(dataset_path):
 
     # img_name_list = np.loadtxt(dataset_path, dtype=np.int32)
     img_name_list = np.loadtxt(dataset_path, dtype=np.str_)
-    img_name_list = [int(name.replace('_', '')) for name in img_name_list]
-    img_name_list = np.asarray(img_name_list, dtype=np.int32)
+    img_name_list = [name for name in img_name_list]
+    img_name_list = np.asarray(img_name_list)
 
     return img_name_list
 
@@ -84,7 +99,10 @@ class VOC12ImageDataset(Dataset):
 
     def __getitem__(self, idx):
         name = self.img_name_list[idx]
-        name_str = decode_int_filename(name)
+        if not isinstance(name, str):
+            name_str = decode_int_filename(name)
+        else:
+            name_str = name
 
         imgA = np.asarray(imageio.imread(get_img_pathA(name_str, self.CAM_root)))
         imgB = np.asarray(imageio.imread(get_img_pathB(name_str, self.CAM_root)))
@@ -154,7 +172,10 @@ class VOC12ClassificationDatasetMSF(VOC12ClassificationDataset):
 
     def __getitem__(self, idx):
         name = self.img_name_list[idx]
-        name_str = decode_int_filename(name)
+        if not isinstance(name, str):
+            name_str = decode_int_filename(name)
+        else:
+            name_str = name
 
         imgA = imageio.imread(get_img_pathA(name_str, self.CAM_root))
         imgB = imageio.imread(get_img_pathB(name_str, self.CAM_root))
